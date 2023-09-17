@@ -3,87 +3,57 @@ package com.example.myapplication
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.animateColor
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
-
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val fontFamily = FontFamily(
-            Font(R.font.poppins_bold, FontWeight.Bold),
-            Font(R.font.poppins_regular, FontWeight.Normal),
-            Font(R.font.poppins_thin, FontWeight.Thin),
-        )
-
         setContent {
-            val scaffoldState = remember {SnackbarHostState()}
-            var textFieldState by remember {
-                mutableStateOf("")
-            }
+            var sizeState by remember { mutableStateOf(200.dp) }
+            val size by animateDpAsState(
+                targetValue = sizeState,
+                spring(Spring.DampingRatioHighBouncy)
+            )
 
-            val scope = rememberCoroutineScope()
-
-            Scaffold(
+            val infiniteTransition = rememberInfiniteTransition()
+            val color by infiniteTransition.animateColor(
+                initialValue = Color.Red,
+                targetValue = Color.Green,
+                animationSpec = infiniteRepeatable(
+                    tween(durationMillis = 2000),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                snackbarHost = { SnackbarHost(hostState = scaffoldState) }
-            ) { contentPadding ->
-                Column(
-                    modifier = Modifier
-                        .padding(contentPadding)
-                        .padding(30.dp)
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    OutlinedTextField(
-                        value = textFieldState,
-                        label = {
-                            Text("Enter your name", fontFamily = fontFamily)
-                        },
-                        onValueChange = {
-                            textFieldState = it
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Spacer(modifier = Modifier.height(15.dp))
-                    Button(onClick = {
-                        scope.launch {
-                            scaffoldState.showSnackbar("Hello $textFieldState")
-                        }
-                    }) {
-                        Text("Please greet me.")
-                    }
+                    .size(size)
+                    .background(color),
+                contentAlignment = Alignment.Center
+            ) {
+                Button(onClick = { sizeState += 50.dp }) {
+                    Text(text = "Increase Size")
                 }
             }
-
         }
     }
 }
+
 
 
